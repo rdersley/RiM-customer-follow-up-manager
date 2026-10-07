@@ -8,37 +8,12 @@ import { chunk, PRIVACY_REPORT_BATCH_SIZE } from '../src/privacy.js';
 const prod = (license) => ({ environmentType: 'PRODUCTION', ...(license === undefined ? {} : { license }) });
 const dev = (license) => ({ environmentType: 'DEVELOPMENT', ...(license === undefined ? {} : { license }) });
 
-test('production resolvers fail closed when the licence is missing or inactive', () => {
-  assert.equal(resolverLicenseAllows(prod(), {}), false);
-  assert.equal(resolverLicenseAllows(prod(null), {}), false);
-  assert.equal(resolverLicenseAllows(prod({ active: false }), {}), false);
-  assert.equal(resolverLicenseAllows(prod({ active: true }), {}), true);
-});
-
-test('an unknown environment is treated as production', () => {
+test('internal edition: resolvers and triggers are allowed in every environment and licence state', () => {
+  for (const context of [prod(), prod(null), prod({ active: false }), prod({ active: true }), {}, dev(), dev({ active: false })]) {
+    assert.equal(resolverLicenseAllows(context, { LICENSE_OVERRIDE: 'inactive' }), true);
+    assert.equal(triggerLicenseAllows(context, { LICENSE_OVERRIDE: 'inactive' }), true);
+  }
   assert.equal(isProductionContext({}), true);
-  assert.equal(isProductionContext(null), true);
-  assert.equal(resolverLicenseAllows({}, {}), false);
-});
-
-test('production ignores LICENSE_OVERRIDE', () => {
-  assert.equal(resolverLicenseAllows(prod(), { LICENSE_OVERRIDE: 'active' }), false);
-});
-
-test('non-production resolvers allow a missing licence and honour simulated states', () => {
-  assert.equal(resolverLicenseAllows(dev(), {}), true);
-  assert.equal(resolverLicenseAllows({ environmentType: 'staging' }, {}), true);
-  assert.equal(resolverLicenseAllows(dev({ active: false }), {}), false);
-  assert.equal(resolverLicenseAllows(dev(), { LICENSE_OVERRIDE: 'inactive' }), false);
-  assert.equal(resolverLicenseAllows(dev({ active: false }), { LICENSE_OVERRIDE: 'active' }), true);
-});
-
-test('triggers rely on the manifest filter and only reject an explicitly inactive licence', () => {
-  assert.equal(triggerLicenseAllows({}, {}), true);
-  assert.equal(triggerLicenseAllows({ license: { active: true } }, {}), true);
-  assert.equal(triggerLicenseAllows({ license: { active: false } }, {}), false);
-  assert.equal(triggerLicenseAllows({}, { LICENSE_OVERRIDE: 'inactive' }), false);
-  assert.equal(triggerLicenseAllows({ license: { active: false } }, { LICENSE_OVERRIDE: 'active' }), false);
 });
 
 test('internal edition triggers are not filtered on a Marketplace licence', () => {

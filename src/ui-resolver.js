@@ -35,14 +35,14 @@ function issueKeyFromContext(context) {
   return context?.extension?.issue?.key ?? context?.issue?.key ?? null;
 }
 
-// Fails closed in production when the licence is missing or inactive.
+// Always allowed in the Retail inMotion edition (see license.js).
 function licenseAllows(context) {
   return resolverLicenseAllows(context);
 }
 
 function ensureLicensedForWrite(context) {
   if (!licenseAllows(context)) {
-    throw new Error('Retail inMotion requires an active Marketplace license to change rules or follow-up cycles.');
+    throw new Error('Follow-Up Manager cannot change rules or follow-up cycles on this site.');
   }
 }
 
