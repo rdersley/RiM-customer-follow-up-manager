@@ -29,7 +29,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
+          check-latest: true
       - name: Validate QA secrets
         env:
           BS_USER: ${{ secrets.BROWSERSTACK_USERNAME }}
